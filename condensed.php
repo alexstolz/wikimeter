@@ -64,6 +64,7 @@ $reputation_dev = number_format(0.8*$num_rev_dev+0.2*$num_auth_dev, 2); // we ar
 add("Reputation", $reputation_dev, 100);
 
 add("MWERT",
+	// weighted indices
 	0.1*$complex_words_dev+
 	0.1*$word_count_dev+
 	0.2*$readability_metrics_dev+
@@ -73,8 +74,8 @@ add("MWERT",
 
 // draw chart / create table
 if(isset($_GET["table"])):
-echo $output->print_table();
+	echo $output->print_table();
 else:
-echo file_get_contents($output->draw_chart(false /* without outputting img tag */));
+	echo file_get_contents($output->draw_chart($with_img_tag = false));
 endif;
 ?>
