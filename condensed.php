@@ -60,17 +60,17 @@ add("Lebenszyklus", $lifecycle_dev, 100);
 // reputation
 $num_rev_dev = min(log($wikimeter->calc_meta_metric("num_revisions"), 10)/3, 3)*100; // >1000 = 100%, logarithmic approach (base 10)
 $num_auth_dev = min(log($wikimeter->calc_meta_metric("num_authors"), 10)/2, 2)*100; // >100 = 100%, logarithmic approach (base 10)
-$reputation_dev = number_format(0.8*$num_rev_dev+0.2*$num_auth_dev, 2); // we argue that in wikis the number of revisions is much more significant than the number of authors involved. hence, 0.2 for authors.
+$reputation_dev = number_format(0.7*$num_rev_dev+0.3*$num_auth_dev, 2); // we argue that in wikis the number of revisions is much more significant than the number of authors involved. hence, 0.2 for authors.
 add("Reputation", $reputation_dev, 100);
 
 add("MWERT",
 	// weighted indices
 	0.1*$complex_words_dev+
 	0.1*$word_count_dev+
-	0.2*$readability_metrics_dev+
+	0.3*$readability_metrics_dev+
 	0.2*$structural_metrics_dev+
 	0.1*$lifecycle_dev+
-	0.3*$reputation_dev, 100);
+	0.2*$reputation_dev, 100);
 
 // draw chart / create table
 if(isset($_GET["table"])):
