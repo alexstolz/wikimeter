@@ -52,9 +52,11 @@ class Utils {
 	function get_xml_object() {
 		return $this->xml;
 	}
-	function get_time_diff($timestamp) {
+	function get_time_diff($timestamp, $timestamp_to=null) {
 		// elapsed time in days
-		return number_format((time()-strtotime($timestamp))/86400, 1) . " Tage";
+		if($timestamp_to == null)
+			return number_format((time()-strtotime($timestamp))/86400, 1) . " Tage";
+		return number_format((strtotime($timestamp_to)-strtotime($timestamp))/86400, 1);
 	}
 	function get_xml_uri() {
 		return $this->xml_uri;

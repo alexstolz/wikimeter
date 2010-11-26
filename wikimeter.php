@@ -9,13 +9,25 @@ class Wikimeter {
 	var $utils = null;
 	var $xml = null;
 	var $text = null;
+	var $rev_num;
 	
-	function __construct() {
+	function __construct($rev_num=0) {
 		$this->stats = new TextStatistics();
 		// parse uri, fetch data object from xml
 		$this->utils = new Utils();
 		$this->xml = $this->utils->get_xml_object();
-		$this->text = $this->get_last_revision()->text;
+		$this->rev_num = $rev_num;
+		if($this->rev_num)
+			$this->text = $this->get_revision($rev_num)->text;
+		else
+			$this->text = $this->get_last_revision()->text;
+	}
+	function updateRevNum($rev_num) {
+		$this->rev_num = $rev_num;
+		if($this->rev_num)
+			$this->text = $this->get_revision($rev_num)->text;
+		else
+			$this->text = $this->get_last_revision()->text;
 	}
 	//readability metrics
 	function calc_read_metric($id) {
@@ -80,14 +92,22 @@ class Wikimeter {
 	function calc_meta_metric($id) {
 		switch($id) {
 			case "num_authors":
-				$authors = $this->get_num_different_authors();
+				if($this->rev_num)
+					$authors = $this->get_num_different_authors($this->rev_num);
+				else $authors = $this->get_num_different_authors();
 				return $authors["sum"];
 			case "num_revisions":
+				if($this->rev_num)
+					return $this->rev_num;
 				return $this->get_num_revisions();
 			case "age":
-				return $this->utils->get_time_diff($this->get_first_revision()->timestamp);
+				if($this->rev_num)
+					return $this->utils->get_time_diff($this->get_first_revision()->timestamp, $this->get_revision($this->rev_num)->timestamp);
+				return $this->utils->get_time_diff($this->get_first_revision()->timestamp, $this->get_last_revision()->timestamp);
 			case "last_edit":
-				return $this->utils->get_time_diff($this->get_last_revision()->timestamp);
+				if($this->rev_num > 1)
+					return $this->utils->get_time_diff($this->get_revision($this->rev_num-1)->timestamp, $this->get_revision($this->rev_num)->timestamp);
+				return $this->utils->get_time_diff($this->get_revision($this->rev_num)->timestamp);
 		}
 	}
 	// condensed metrics (ideal for a quick overview)
@@ -131,10 +151,13 @@ class Wikimeter {
 	function get_last_revision() {
 		return $this->xml->page->revision[$this->get_num_revisions()-1];
 	}
+	function get_revision($rev_num) {
+		return $this->xml->page->revision[$rev_num-1];
+	}
 	function get_num_revisions() {
 		return sizeof($this->xml->page->revision);
 	}
-	function get_num_different_authors() {
+	function get_num_different_authors($rev_num=0) {
 		/*
 			SimpleXMLElement Object
 			(
@@ -149,11 +172,15 @@ class Wikimeter {
 		*/
 		$contributors_ip = array();
 		$contributors_username = array();
+		$i=0;
 		foreach ($this->xml->page->revision as $revision) {
 			if($revision->contributor->ip)
 				$contributors_ip[] = $revision->contributor->ip;
 			else if($revision->contributor->username)
 				$contributors_username[] = $revision->contributor->username;
+			if($rev_num && ++$i>=$rev_num) {
+				break;
+			}
 		}
 		// remove duplicate entries
 		$contributors_ip = array_unique($contributors_ip);
