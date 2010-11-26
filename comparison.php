@@ -96,8 +96,11 @@ for($i=1; $i<=$wikimeter->get_num_revisions(); $i++) {
 		, 0), 2); // 16 is optimum, for each percentage of distance reduce by factor 2 up to zero as minimum value
 		
 	// structural metrics
-	$images_per_subsection = $wikimeter->calc_struct_metric("num_images")/$wikimeter->calc_struct_metric("num_subsections");
-	$images_per_subsection_dev = max(100-pow(abs(100-$images_per_subsection*100), 1.5), 0);
+	$images_per_subsection_dev = 0;
+	if($wikimeter->calc_struct_metric("num_subsections")) {
+		$images_per_subsection = $wikimeter->calc_struct_metric("num_images")/$wikimeter->calc_struct_metric("num_subsections");
+		$images_per_subsection_dev = max(100-pow(abs(100-$images_per_subsection*100), 1.5), 0);
+	}
 	$link_density_dev = max(100-
 		pow(abs(10-$wikimeter->calc_struct_metric("link_density")), 2) // distance from optimum value (diff up to <10% is ok)
 		, 0);
