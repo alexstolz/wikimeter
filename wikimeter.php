@@ -103,11 +103,11 @@ class Wikimeter {
 			case "age":
 				if($this->rev_num)
 					return $this->utils->get_time_diff($this->get_first_revision()->timestamp, $this->get_revision($this->rev_num)->timestamp);
-				return $this->utils->get_time_diff($this->get_first_revision()->timestamp, $this->get_last_revision()->timestamp);
+				return $this->utils->get_time_diff($this->get_first_revision()->timestamp);
 			case "last_edit":
-				if($this->rev_num > 1)
-					return $this->utils->get_time_diff($this->get_revision($this->rev_num-1)->timestamp, $this->get_revision($this->rev_num)->timestamp);
-				return $this->utils->get_time_diff($this->get_revision($this->rev_num)->timestamp);
+				if($this->rev_num && $this->rev_num < $this->get_num_revisions())
+					return $this->utils->get_time_diff($this->get_revision($this->rev_num)->timestamp, $this->get_revision($this->rev_num+1)->timestamp);
+				return $this->utils->get_time_diff($this->get_last_revision()->timestamp);
 		}
 	}
 	// condensed metrics (ideal for a quick overview)

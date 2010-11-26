@@ -3,16 +3,83 @@ error_reporting(E_ALL ^ E_NOTICE);
 ini_set("display_errors", 1);
 ini_set('max_execution_time', 0);
 
-header("Content-Type: text/html; charset=utf-8");
+// header("Content-Type: text/html; charset=utf-8");
+?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="de" lang="de">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+	<title>Wikimeter - Qualitätsbestimmung von Enterprise-Wiki-Artikeln</title>
+	<style type="text/css">
+	<!--
+	a {
+		text-decoration: none;
+		color: #336699;
+	}
+	a:hover {
+		color: #6699CC;
+	}
+	h1 {
+		font-size: 16px;
+	}
+	th {
+		background-color: white;
+	}
+	body {
+		font-size: 12px;
+		font-family: Arial, Verdana, sans-serif;
+		margin: 0;
+		padding-bottom: 10px;
+	}
+	#header {
+		margin: 0 auto;
+		width: 600px;
+		padding: 3px;
+		text-align: left;
+	}
+	#content {
+		margin: 0 auto;
+		width: 700px;
+		padding: 20px;
+		background-color: #CCDDEE;
+		border: #666 solid 1px;
+		border-radius: 1.5em;
+		-moz-border-radius: 1.5em;
+		-webkit-border-radius: 1.5em;
+	}
+	#footer {
+		margin: 0 auto;
+		width: 600px;
+		padding: 10px;
+		color: #666;
+		text-align: center;
+	}
+	#head {
+		width: 600px;
+		background-color: #fff;
+		border-radius: 1em; -moz-border-radius: 1em; -webkit-border-radius: 1em;
+		padding: 6px;
+		border: #999 solid 1px;
+	}
+	-->
+	</style>
+</head>
+<body>
+<div id="header">
+	<h1>Veränderung der Gesamtmetrik über den Lebenszyklus des Artikels hinweg</h1>
+</div>
+<div id="content">
+<?php
 require_once("wikimeter.php");
 require_once("output.php");
 
 // initialize class for metrics
 $wikimeter = new Wikimeter();
 
-$chart = "http://chart.apis.google.com/chart?cht=lc&chs=600x400&chds=0,1000&chd=t:";
-
+$chart = "http://chart.apis.google.com/chart?cht=lc&chs=700x420&chm=B,EEEEEE,0,0,0&chxt=x,y,x&chtt=Entwicklung+des+Gesamtindex+%C3%BCber+die+Versionshistorie&chds=0,1000&chxl=0:|0|".$wikimeter->get_num_revisions()."|1:|0|50|100|2:||Versionen|&chd=t:";
+echo "<table style=\"width:100%\" border=\"1\" cellspacing=\"0\" cellpadding=\"3\"><tr><th>weighted metric</th><th>% complex words</th><th>wc</th><th>link density</th><th>num revs</th><th>article age</th><th>num authors</th></tr>";
 for($i=1; $i<=$wikimeter->get_num_revisions(); $i++) {
 	$wikimeter->updateRevNum($i);
 	// complex words
@@ -49,7 +116,7 @@ for($i=1; $i<=$wikimeter->get_num_revisions(); $i++) {
 	// reputation
 	$num_rev_dev = min(log($wikimeter->calc_meta_metric("num_revisions"), 10)/3, 3)*100; // >1000 = 100%, logarithmic approach (base 10)
 	$num_auth_dev = min(log($wikimeter->calc_meta_metric("num_authors"), 10)/2, 2)*100; // >100 = 100%, logarithmic approach (base 10)
-	$reputation_dev = number_format(0.7*$num_rev_dev+0.3*$num_auth_dev, 2); // we argue that in wikis the number of revisions is much more significant than the number of authors involved. hence, 0.3 for authors.
+	$reputation_dev = number_format(0.6*$num_rev_dev+0.4*$num_auth_dev, 2); // we argue that in wikis the number of revisions is more significant than the number of authors involved. hence, 0.4 for authors.
 	
 	// weighted indices
 	$weighted =
@@ -60,12 +127,19 @@ for($i=1; $i<=$wikimeter->get_num_revisions(); $i++) {
 		0.1*$lifecycle_dev+
 		0.2*$reputation_dev;
 	
-	//echo $weighted." - num_revs:".$wikimeter->calc_meta_metric("num_revisions")." - age:".$wikimeter->calc_meta_metric("age")." - authors:".$wikimeter->calc_meta_metric("num_authors")."<br />";
+	echo "<tr><td>".number_format($weighted, 2)."</td><td>".number_format($wikimeter->calc_text_metric("percentage_complex_words"), 2)."</td><td>".$wikimeter->calc_text_metric("word_count")."</td><td>".number_format($wikimeter->calc_struct_metric("link_density"), 2)."</td><td>".$wikimeter->calc_meta_metric("num_revisions")."</td><td>".$wikimeter->calc_meta_metric("age")."</td><td>".$wikimeter->calc_meta_metric("num_authors")."</td></tr>";
 	$chart .= number_format($weighted*10, 0).",";
 }
+echo "</table>";
+
 $chart = substr($chart, 0, -1);
 
 // http://localhost:8080/wikimeter/comparison.php?uri=http://www.ebusiness-unibw.org/wiki/Main_Page
-echo "<img src=\"$chart\" />";
+echo "<p><img src=\"$chart\" /></p>";
 
 ?>
+</div>
+<div id="footer">
+</div>
+</body>
+</html>
